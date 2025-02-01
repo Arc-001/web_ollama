@@ -1,1 +1,4 @@
-BS4
+requests
+bs4
+lxml
+langchain-community
