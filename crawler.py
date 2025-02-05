@@ -10,6 +10,7 @@ from langchain.chains import ConversationChain
 from langchain.chains import LLMChain
 from langchain.llms import Ollama
 from langchain.schema import Document
+from duckduckgo_search import DDGS
 
 def clean_text(text):
     """Remove extra whitespace and special characters"""
@@ -61,17 +62,17 @@ def crawler(url):
         print(f"Error: {e}")
         return None
 
-# def google_search(query, api_key, cse_id, **kwargs):
-#     """
-#     Perform Google search using Custom Search API
-#     Args:
-#         query: Search query
-#         api_key: Google API key
-#         cse_id: Custom Search Engine ID
-#     """
-#     service = build("customsearch", "v1", developerKey=api_key)
-#     res = service.cse().list(q=query, cx=cse_id, **kwargs).execute()
-#     return res['items']
+def web_search(query, num_results=5):
+    """
+    Perform web search using DuckDuckGo
+    """
+    try:
+        results = DDGS().text(query, max_results=5)
+        print (results)
+        return results
+    except Exception as e:
+        print(f"Search Error: {e}")
+        return None
 
 # def test():
 #     # You need to get these from Google Cloud Console
@@ -135,5 +136,31 @@ def analyze_webpage(url, question):
         return query_with_langchain(content, question)
     return None
 
-# print(enhanced_crawler('https://null-byte.wonderhowto.com/how-to/get-unlimited-free-trials-using-real-fake-credit-card-number-0149638/'))
-print(analyze_webpage('https://null-byte.wonderhowto.com/how-to/get-unlimited-free-trials-using-real-fake-credit-card-number-0149638/', 'How can I get unlimited free trials?'))
+
+
+def run():
+    while (True):
+        query = input("Enter your query: ")
+        results = web_search(query)
+        
+        url = []
+        #display results
+        for result in results:
+            print(f"Title: {result['title']}")
+            print(f"URL: {result['href']}")
+            url.append(result['href'])
+            # print(f"Snippet: {result['snippet']}\n")
+        
+        print("\n\n\n",url)
+        for i in url:    
+            response = analyze_webpage(i, query)
+            print(f"Answer: {response}\n")
+        
+        cont = input("Do you want to continue? (y/n): ")
+        if cont.lower() != 'y':
+            break
+
+
+
+if (__name__ == "__main__"):
+    run()
