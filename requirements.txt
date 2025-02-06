@@ -3,3 +3,4 @@ bs4
 lxml
 langchain-community
 duckduckgo-search
+langchain-ollama

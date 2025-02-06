@@ -2,15 +2,16 @@ import requests
 from bs4 import BeautifulSoup
 # from googleapiclient.discovery import build
 import re
-from langchain.document_loaders import BSHTMLLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.memory import ConversationBufferMemory
-from langchain.prompts import PromptTemplate
-from langchain.chains import ConversationChain
+# from langchain.document_loaders import BSHTMLLoader
+# from langchain.text_splitter import RecursiveCharacterTextSplitter
+# from langchain.memory import ConversationBufferMemory
+# from langchain.prompts import PromptTemplate
+# from langchain.chains import ConversationChain
 from langchain.chains import LLMChain
-from langchain.llms import Ollama
-from langchain.schema import Document
+# from langchain.schema import Document
 from duckduckgo_search import DDGS
+from langchain_ollama import ChatOllama
+
 
 def clean_text(text):
     """Remove extra whitespace and special characters"""
@@ -105,7 +106,7 @@ def process_content_for_llm(content):
 def query_with_langchain(content, question, model_name="llama3.2:3b"):
     """Query Ollama through LangChain"""
     # Initialize Ollama
-    llm = Ollama(model=model_name)
+    llm = ChatOllama(model=model_name)
     
     # Create prompt template
     prompt = PromptTemplate(
