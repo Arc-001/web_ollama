@@ -1,10 +1,12 @@
 import requests
 from bs4 import BeautifulSoup
 import re
+from langchain import hub
 from langchain.document_loaders import BSHTMLLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.memory import ConversationBufferMemory
 from langchain.prompts import PromptTemplate
+from langchain_core.documents import Document
 from langchain.chains import ConversationChain
 from langchain.chains import LLMChain
 from langchain.schema import Document
@@ -82,7 +84,7 @@ def crawler(url):
 
 
 
-def web_search(query, num_results=5):
+def web_search(query, num_results=3):
     """
     Perform web search using DuckDuckGo
     """
@@ -115,18 +117,28 @@ def process_content_for_llm(content,depth = 5):
 
     """
 
-def query_with_embeddings(content, question, model_name="mxbai-embed-large", llm_model="llama3.2:3b"):
+def query_with_embeddings(content, question,depth = 5, model_name="mxbai-embed-large", llm_model="llama3.2:3b"):
+    if isinstance(content, dict):
+        content_ = process_content_for_llm(content,depth)
+    else:
+        content_ = content
+        print(content_)
     vector_store = embedding.get_inmemory_vector_store(model_name)
     llm = embedding.get_chat_ollama(llm_model)
-    split_doc = embedding.split_document(content)
-    _ = vector_store.add_documents(split_doc)
+    split_doc = embedding.split_document(content_)
+    _ = vector_store.add_texts(split_doc)
     prompt = hub.pull("rlm/rag-prompt")
     retrieved_docs = vector_store.similarity_search(question)
-    message = prompt.invoke({"question": question,"context": '\n'.join(retrieved_docs)})
+    str_doc = '\n\n'.join([doc.page_content for doc in retrieved_docs])
+    message = prompt.invoke({"question": question,"context": str_doc})
     response = llm.invoke(message)
     return response
 
-
+def analyze_webpage_with_embeddings(url, question, depth = 5):
+    content = crawler(url)
+    if content:
+        return query_with_embeddings(content, question, depth=depth)
+    return None
 
 
 def query_with_langchain(content, question, llm_model="llama3.2:3b"):
@@ -150,7 +162,11 @@ def query_with_langchain(content, question, llm_model="llama3.2:3b"):
     chain = LLMChain(llm=llm, prompt=prompt)
     
     # Process content
-    context = process_content_for_llm(content)
+    if (not(isinstance(content,str))):
+        context = process_content_for_llm(content)
+    else:
+        context = content
+
     
     # Execute chain
     response = chain.run(context=context, question=question)
@@ -179,10 +195,21 @@ def run():
             # print(f"Snippet: {result['snippet']}\n")
         
         print("\n\n\n",url)
+        sum_of_all = []
         for i in url:    
-            response = analyze_webpage(i, query)
-            print(f"Answer: {response}\n")
+            response = analyze_webpage_with_embeddings(i, query)
+            try:
+                sum_of_all.append(response.content)
+                print(f"Answer: {response.content}\n")
+            except:
+                continue
         
+        sum_of_all = '\n'.join(sum_of_all)
+        print("The summary of it all is :", sum_of_all)
+
+        query_with_langchain(sum_of_all, query)
+        print(response.content)
+
         cont = input("Do you want to continue? (y/n): ")
         if cont.lower() != 'y':
             break
