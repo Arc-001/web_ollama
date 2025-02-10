@@ -117,7 +117,7 @@ def process_content_for_llm(content,depth = 5):
 
     """
 
-def query_with_embeddings(content, question,depth = 5, model_name="mxbai-embed-large", llm_model="llama3.2:3b"):
+def query_with_embeddings(content, question,depth = 5, model_name="mxbai-embed-large", llm_model="llama3.1:8b"):
     if isinstance(content, dict):
         content_ = process_content_for_llm(content,depth)
     else:
@@ -127,7 +127,17 @@ def query_with_embeddings(content, question,depth = 5, model_name="mxbai-embed-l
     llm = embedding.get_chat_ollama(llm_model)
     split_doc = embedding.split_document(content_)
     _ = vector_store.add_texts(split_doc)
-    prompt = hub.pull("rlm/rag-prompt")
+    # prompt = hub.pull("rlm/rag-prompt")
+    prompt = PromptTemplate(
+        input_variables=["context", "question"],
+        template="""
+        Context: {context}
+        
+        Question: {question}
+        
+        Answer: Let me analyze this information that I got from the web and answer your question.
+        """
+    )
     retrieved_docs = vector_store.similarity_search(question)
     str_doc = '\n\n'.join([doc.page_content for doc in retrieved_docs])
     message = prompt.invoke({"question": question,"context": str_doc})
