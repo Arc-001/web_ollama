@@ -109,7 +109,7 @@ def process_content_for_llm(content,depth = 5):
     Title: {content['title']}
     
     Main Content:
-    {' '.join(content['main_content'][:depth])}
+    {' '.join(content['main_content'][:])}
     
     Key Sections:
     {' '.join(content['headings'])}
@@ -141,7 +141,7 @@ def analyze_webpage_with_embeddings(url, question, depth = 5):
     return None
 
 
-def query_with_langchain(content, question, llm_model="llama3.2:3b"):
+def query_with_langchain(content, question, llm_model="deepseek-r1:8b"):
     """Query Ollama through LangChain"""
     # Initialize Ollama
     llm = ChatOllama(model=llm_model)
@@ -207,8 +207,8 @@ def run():
         sum_of_all = '\n'.join(sum_of_all)
         print("The summary of it all is :", sum_of_all)
 
-        query_with_langchain(sum_of_all, query)
-        print(response.content)
+        response = query_with_langchain(sum_of_all, query)
+        print(response)
 
         cont = input("Do you want to continue? (y/n): ")
         if cont.lower() != 'y':
