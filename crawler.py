@@ -117,7 +117,7 @@ def process_content_for_llm(content,depth = 5):
 
     """
 
-def query_with_embeddings(content, question,depth = 5, model_name="mxbai-embed-large", llm_model="llama3.1:8b"):
+def query_with_embeddings(content, question,depth = 5, model_name="mxbai-embed-large", llm_model="llama3.2:3b"):
     if isinstance(content, dict):
         content_ = process_content_for_llm(content,depth)
     else:
@@ -151,7 +151,7 @@ def analyze_webpage_with_embeddings(url, question, depth = 5):
     return None
 
 
-def query_with_langchain(content, question, llm_model="deepseek-r1:8b"):
+def query_with_langchain(content, question, llm_model="llama3.2:3b"):
     """Query Ollama through LangChain"""
     # Initialize Ollama
     llm = ChatOllama(model=llm_model)
